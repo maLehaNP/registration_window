@@ -1,10 +1,9 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QInputDialog, QWidget, QMessageBox, QLineEdit
+import json
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QMessageBox
 from ui_auth import Ui_Form as Auth_Ui_Form
 from ui_reg import Ui_Form as Reg_Ui_Form
 from ui_main import Ui_MainWindow
-
-import json
 
 # alph_eng = [chr(i) for i in range(97, 123)] + [chr(i) for i in range(65, 91)]
 alph_eng = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u',
@@ -51,9 +50,10 @@ class Reg(QWidget, Reg_Ui_Form):
         self.setupUi(self)
         self.init_ui()
 
-        self.data = {}
         self.reg_is_complete = 0
         self.req_stat = [0, 0, 0, 0, 0]
+        with open('db.json') as db:
+            self.data = json.load(db)
 
     def init_ui(self):
         self.setLayout(self.verticalLayout)
@@ -157,18 +157,16 @@ class Reg(QWidget, Reg_Ui_Form):
         #         self.pass_rep_lbl.text() == 'Пароль принят') and (self.email_lbl.text() == 'Верная почта') and (
         #         self.phone_lbl.text() == 'Номер принят'):
         if self.req_stat == [1, 1, 1, 1, 1]:
+            self.data[self.login.text()] = {
+                'password': self.password.text(),
+                'email': self.email.text(),
+                'phone': self.phone.text(),
+                'name': self.name.text(),
+                'city': self.city.text(),
+                'about': self.about.toPlainText()
+            }
             with open('db.json', 'w') as db:
-                data = {
-                    self.login.text(): {
-                        'password': self.password.text(),
-                        'email': self.email.text(),
-                        'phone': self.phone.text(),
-                        'name': self.name.text(),
-                        'city': self.city.text(),
-                        # 'about': self.about.ывапц
-                    }
-                }
-                json.dump(data, db)
+                json.dump(self.data, db)
             self.reg_is_complete = 1
             self.main = MainWindow(self.login.text())
             self.main.show()
@@ -199,9 +197,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.init_ui(login)
 
     def init_ui(self, login):
-        with open('db.json') as db:
-            data = json.load(db)
-            self.label.setText(f"Здравствуйте, {login}")
+        self.label.setText(f"Здравствуйте, {login}")
 
 
 if __name__ == '__main__':
